@@ -104,7 +104,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Contact
 
-Your Name - [Prashanh](https://twitter.com/Prashanth_Krsna)
+Your Name - [Twitter](https://twitter.com/Prashanth_Krsna)
 
 Project Link: [https://github.com/yourusername/text-difference-checker](https://github.com/yourusername/text-difference-checker)
 
