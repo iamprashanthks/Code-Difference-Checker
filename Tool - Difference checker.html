@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text Difference Checker</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .text-areas {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .text-column {
+        flex: 1;
+      }
+
+      .text-label {
+        display: block;
+        margin-bottom: 5px;
+        color: #666;
+        font-weight: bold;
+      }
+
+      textarea {
+        width: 100%;
+        height: 400px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        resize: vertical;
+        font-family: monospace;
+        font-size: 14px;
+      }
+
+      .controls {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      button {
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      .diff-container {
+        background-color: white;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        overflow: hidden;
+      }
+
+      .diff-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .diff-stats {
+        display: flex;
+        gap: 20px;
+        color: #666;
+        font-size: 14px;
+      }
+
+      .diff-content {
+        display: flex;
+      }
+
+      .diff-column {
+        flex: 1;
+        border-right: 1px solid #ddd;
+      }
+
+      .diff-column:last-child {
+        border-right: none;
+      }
+
+      .diff-line {
+        display: flex;
+        min-height: 24px;
+      }
+
+      .line-number {
+        padding: 0 8px;
+        border-right: 1px solid #eee;
+        color: #999;
+        text-align: right;
+        min-width: 40px;
+        user-select: none;
+        background-color: #f8f9fa;
+      }
+
+      .line-content {
+        padding: 0 8px;
+        white-space: pre;
+        flex: 1;
+      }
+
+      .diff-added {
+        background-color: #e6ffec;
+      }
+
+      .diff-removed {
+        background-color: transparent;
+      }
+
+      .copy-button {
+        padding: 4px 8px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Text Difference Checker</h1>
+        <p>Compare two texts and find the differences</p>
+      </header>
+
+      <div class="text-areas">
+        <div class="text-column">
+          <label class="text-label">Original Text</label>
+          <textarea
+            id="text1"
+            placeholder="Enter original text here..."
+          ></textarea>
+        </div>
+        <div class="text-column">
+          <label class="text-label">Modified Text</label>
+          <textarea
+            id="text2"
+            placeholder="Enter modified text here..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button onclick="compareTexts()">Compare Texts</button>
+        <button onclick="clearTexts()">Clear</button>
+      </div>
+
+      <div class="diff-container">
+        <div class="diff-header">
+          <div class="diff-stats">
+            <span id="lineCount">0 lines</span>
+            <span id="changeCount">0 changes</span>
+          </div>
+          <button class="copy-button" onclick="copyDiff()">Copy</button>
+        </div>
+        <div class="diff-content">
+          <div class="diff-column" id="leftColumn"></div>
+          <div class="diff-column" id="rightColumn"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function compareTexts() {
+        const text1 = document.getElementById("text1").value;
+        const text2 = document.getElementById("text2").value;
+
+        const lines1 = text1.split("\n");
+        const lines2 = text2.split("\n");
+
+        const leftColumn = document.getElementById("leftColumn");
+        const rightColumn = document.getElementById("rightColumn");
+
+        leftColumn.innerHTML = "";
+        rightColumn.innerHTML = "";
+
+        let changes = 0;
+        const maxLines = Math.max(lines1.length, lines2.length);
+
+        for (let i = 0; i < maxLines; i++) {
+          const line1 = lines1[i] || "";
+          const line2 = lines2[i] || "";
+
+          // Left column
+          const leftLine = createLine(i + 1, line1, false);
+          leftColumn.appendChild(leftLine);
+
+          // Right column
+          const rightLine = createLine(i + 1, line2, line1 !== line2);
+          rightColumn.appendChild(rightLine);
+
+          if (line1 !== line2) {
+            changes++;
+          }
+        }
+
+        document.getElementById("lineCount").textContent = `${maxLines} lines`;
+        document.getElementById(
+          "changeCount"
+        ).textContent = `${changes} changes`;
+      }
+
+      function createLine(number, content, isDifferent) {
+        const line = document.createElement("div");
+        line.className = "diff-line" + (isDifferent ? " diff-added" : "");
+
+        const lineNumber = document.createElement("div");
+        lineNumber.className = "line-number";
+        lineNumber.textContent = number;
+
+        const lineContent = document.createElement("div");
+        lineContent.className = "line-content";
+        lineContent.textContent = content;
+
+        line.appendChild(lineNumber);
+        line.appendChild(lineContent);
+        return line;
+      }
+
+      function clearTexts() {
+        document.getElementById("text1").value = "";
+        document.getElementById("text2").value = "";
+        document.getElementById("leftColumn").innerHTML = "";
+        document.getElementById("rightColumn").innerHTML = "";
+        document.getElementById("lineCount").textContent = "0 lines";
+        document.getElementById("changeCount").textContent = "0 changes";
+      }
+
+      function copyDiff() {
+        const leftText = Array.from(
+          document.querySelectorAll("#leftColumn .line-content")
+        )
+          .map((el) => el.textContent)
+          .join("\n");
+        const rightText = Array.from(
+          document.querySelectorAll("#rightColumn .line-content")
+        )
+          .map((el) => el.textContent)
+          .join("\n");
+
+        const diffText = `Original:\n${leftText}\n\nModified:\n${rightText}`;
+        navigator.clipboard.writeText(diffText);
+      }
+    </script>
+  </body>
+</html>
