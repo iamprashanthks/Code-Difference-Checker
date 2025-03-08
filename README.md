@@ -1,5 +1,4 @@
 # Code-Difference-Checker
-# Text Difference Checker
 
 A lightweight, browser-based text comparison tool that allows users to easily identify differences between two texts. Built with pure HTML, CSS, and JavaScript, requiring no external dependencies.
 
